@@ -5,6 +5,7 @@ export type BridgeState =
     | 'QUOTING'        // Loading best route from LI.FI
     | 'BRIDGING'       // Step 1: Cross-chain transfer in progress
     | 'DEPOSITING'     // Step 2: EVM -> L1 deposit in progress
+    | 'SAFETY_GUARD'   // Interception: Confirmation required
     | 'SUCCESS';       // Funds live in trading account
 
 export type ErrorState =
@@ -14,18 +15,30 @@ export type ErrorState =
     | 'DEPOSIT_FAILED' // Step 2 failed (show rescue button)
     | null;
 
+export interface SafetyGuardPayload {
+    inputAmount: number;
+    bridgeFee: number;
+    gasCost: number;
+    netAmount: number;
+    isSafe: boolean;
+}
+
 interface BridgeStore {
     state: BridgeState;
     error: ErrorState;
+    safetyPayload: SafetyGuardPayload | null;
     setState: (state: BridgeState) => void;
     setError: (error: ErrorState) => void;
+    setSafetyPayload: (payload: SafetyGuardPayload | null) => void;
     reset: () => void;
 }
 
 export const useBridgeState = create<BridgeStore>((set) => ({
     state: 'IDLE',
     error: null,
+    safetyPayload: null,
     setState: (state) => set({ state }),
     setError: (error) => set({ error }),
-    reset: () => set({ state: 'IDLE', error: null }),
+    setSafetyPayload: (payload) => set({ safetyPayload: payload }),
+    reset: () => set({ state: 'IDLE', error: null, safetyPayload: null }),
 }));
