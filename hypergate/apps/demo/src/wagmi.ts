@@ -4,7 +4,7 @@ import { createConfig, http, createConnector } from 'wagmi';
 import { mock } from 'wagmi/connectors';
 import { arbitrum, mainnet, optimism, base } from 'wagmi/chains';
 import { defineChain } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+
 
 export const hyperEvm = defineChain({
     id: 998,
@@ -23,7 +23,9 @@ export const hyperEvm = defineChain({
 });
 
 // 1. Create a Test Account
-const testAccount = privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80');
+// 1. Create a Test Account (Impersonating a specific wealthy address for Demo)
+// We use a string address so Wagmi doesn't try to derive it from a private key.
+const TEST_ADDRESS = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'; // Vitalik.eth
 
 // 2. Setup Connectors
 const connectors = connectorsForWallets(
@@ -52,7 +54,7 @@ const connectors = connectorsForWallets(
                     createConnector: (walletDetails: any) => {
                         return createConnector((config: any) => ({
                             ...mock({
-                                accounts: [testAccount.address],
+                                accounts: [TEST_ADDRESS],
                                 features: { reconnect: true },
                             })(config),
                             ...walletDetails,
