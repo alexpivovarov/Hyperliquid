@@ -17,6 +17,8 @@
     "camelcase-css": "^2.0.1",
     "fastq": "^1.20.1",
     "is-extglob": "^2.1.1",
+    "motion": "^12.26.2",
+    "ogl": "^1.0.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-style-singleton": "^2.2.3",
