@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { LiFiWidget, useWidgetEvents, WidgetEvent } from '@lifi/widget';
 import { useBridgeState } from './stores/useBridgeState';
-import { CHAINS, CONTRACTS } from './config/constants';
+import { CHAINS, CONTRACTS, LIMITS } from './config/constants'; // Added LIMITS
+import { usePublicClient, useAccount } from 'wagmi'; // Added usePublicClient, useAccount
+import { parseAbi } from 'viem'; // Added parseAbi
 import './index.css';
 
 interface HyperGateProps {
@@ -38,7 +40,8 @@ export function HyperGate({ userAddress }: HyperGateProps) {
 
     // Stored route to resume after safety check
     const [_pendingRoute, setPendingRoute] = useState<any>(null);
-    const [isConfirmingRisk, setIsConfirmingRisk] = useState(false);
+    const publicClient = usePublicClient();
+    const { address } = useAccount();
 
     const handleSafetyCheck = (route: any) => {
         // Parse fee data
@@ -54,7 +57,7 @@ export function HyperGate({ userAddress }: HyperGateProps) {
         const bridgeFeeUSD = fromAmountUSD - toAmountUSD - totalGasUSD; // Rough estimate of spread + fees
         const netAmount = toAmountUSD;
 
-        const isSafe = netAmount >= 5.1;
+        const isSafe = netAmount >= LIMITS.MINIMUM_DEPOSIT;
 
         setSafetyPayload({
             inputAmount: fromAmountUSD,
@@ -71,12 +74,71 @@ export function HyperGate({ userAddress }: HyperGateProps) {
     useEffect(() => {
         const onRouteExecuted = async (route: any) => {
             console.log('✅ Step 1 Complete: Funds on HyperEVM', route);
+
+            // SECURITY: Input Validation
+            if (!route || typeof route.toAmount !== 'string') {
+                console.error('❌ Security: Invalid route data from LI.FI');
+                setError('BRIDGE_FAILED');
+                return;
+            }
+
+            // SECURITY: Decimal Handling & Overflow Protection
+            let amount: bigint;
+            try {
+                // LiFi typically returns amounts in atomic units (wei/base units) as string
+                // We verify it's a valid integer string
+                if (!/^\d+$/.test(route.toAmount)) throw new Error('Invalid amount format');
+                amount = BigInt(route.toAmount);
+
+                // Cap at Maximum Deposit Limit
+                const maxDeposit = BigInt(LIMITS.MAXIMUM_DEPOSIT) * BigInt(1e6); // Assuming ~1 USDC = 1e6. Rough check.
+                // Better: Check decimals dynamically or assume 6 for USDC.
+                // For now, simple sanity check against massive numbers
+                if (parseFloat(route.toAmountUSD) > LIMITS.MAXIMUM_DEPOSIT) {
+                    throw new Error('Amount exceeds maximum deposit limit');
+                }
+            } catch (e) {
+                console.error('❌ Security: Amount validation failed', e);
+                setError('BRIDGE_FAILED');
+                return;
+            }
+
+            // SECURITY: Balance Verification
+            // Verify funds actually arrived on HyperEVM before attempting L1 deposit
+            try {
+                if (!publicClient) throw new Error('No public client available');
+
+                // Wait a moment for indexers/RPC to catch up (consistency)
+                await new Promise(r => setTimeout(r, 2000));
+
+                const balance = await publicClient.readContract({
+                    address: CONTRACTS.USDC_HYPEREVM as `0x${string}`,
+                    abi: parseAbi(['function balanceOf(address) view returns (uint256)']),
+                    functionName: 'balanceOf',
+                    args: [userAddress as `0x${string}`]
+                });
+
+                if (balance < amount) {
+                    console.error(`❌ Security: Asset Mismatch. Route says ${amount}, Balance is ${balance}`);
+                    // Critical error: Bridge claimed success but funds are missing?
+                    // We will try to deposit whatever is actually there to save the user, 
+                    // BUT only if it's > 0.
+                    if (balance === 0n) {
+                        throw new Error('Zero balance detected after bridge.');
+                    }
+                    console.warn('⚠️ Depositing actual balance instead of route amount');
+                    amount = balance;
+                }
+            } catch (err) {
+                console.error('❌ Security: Balance verification failed:', err);
+                setError('BRIDGE_FAILED');
+                return;
+            }
+
             setState('DEPOSITING');
 
             try {
                 // Auto-trigger deposit (User needs to sign)
-                // route.toAmount is usually string. Check LiFi docs. Assuming string.
-                const amount = BigInt(route.toAmount);
                 await depositToL1(amount);
                 setState('SUCCESS');
             } catch (err) {
@@ -104,7 +166,7 @@ export function HyperGate({ userAddress }: HyperGateProps) {
             widgetEvents.off(WidgetEvent.RouteExecutionFailed, onRouteFailed);
             widgetEvents.off(WidgetEvent.RouteExecutionStarted, onRouteExecutionStarted);
         };
-    }, [widgetEvents, setState, setError, depositToL1, setSafetyPayload]);
+    }, [widgetEvents, setState, setError, depositToL1, setSafetyPayload, publicClient, userAddress]);
 
     // Demo Mode Logic
     const TEST_ADDRESS = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
@@ -127,19 +189,25 @@ export function HyperGate({ userAddress }: HyperGateProps) {
             steps: []
         };
         handleSafetyCheck(mockCalculatedRoute);
-        // We pause here. The user must proceed in the modal.
     };
 
     // Resume function called by Modal
     const proceedWithBridge = async () => {
+        if (state === 'SAFETY_GUARD' && safetyPayload && !safetyPayload.isSafe) {
+            // STRICT SAFETY GUARD: Do not allow proceeding if unsafe
+            alert("Cannot proceed: Deposit amount is below the minimum safe limit. Funds would be lost.");
+            return;
+        }
+
         if (isDemoMode) {
             setState('BRIDGING');
             await new Promise(r => setTimeout(r, 2000));
 
-            const mockRoute = { toAmount: '5000000', toToken: { address: CONTRACTS.USDC_HYPEREVM } };
+            const mockRoute = { toAmount: '5000000', toToken: { address: CONTRACTS.USDC_HYPEREVM }, toAmountUSD: '5.00' };
             console.log('✅ Demo Step 1 Complete');
             setState('DEPOSITING');
             try {
+                // In demo we skip verification
                 await depositToL1(BigInt(mockRoute.toAmount));
                 setState('SUCCESS');
             } catch (err) {
@@ -147,7 +215,13 @@ export function HyperGate({ userAddress }: HyperGateProps) {
             }
         } else {
             // For real mode, we just close the modal. 
-            // The wallet popup is likely already open since we can't async block the widget without alert().
+            // The widget continues since we didn't actually pause it (limitations of Widget events).
+            // NOTE: In a real implementation we would pause the widget if possible. 
+            // Here we rely on the user having to confirm the transaction in wallet anyway, 
+            // but the safety guard UI overlay blocks them from seeing the 'Sign' prompt? 
+            // No, the widget handles the bridge. We just show the overlay. 
+            // Actually, if we are in 'SAFETY_GUARD' state, the component renders the overlay.
+            // If we click Proceed, we switch to BRIDGING/IDLE which hides the overlay.
             setState('BRIDGING');
         }
     };

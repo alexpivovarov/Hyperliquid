@@ -33,34 +33,36 @@ const connectors = connectorsForWallets(
         {
             groupName: 'Development',
             wallets: [
-                // Robust Test Wallet
-                () => ({
-                    id: 'test-wallet',
-                    name: 'Test Wallet',
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/9187/9187604.png',
-                    iconBackground: '#e0e0e0',
-                    installed: true,
-                    downloadUrls: {
-                        android: 'https://example.com',
-                        ios: 'https://example.com',
-                        qrCode: 'https://example.com',
-                    },
-                    extension: {
-                        instructions: {
-                            learnMoreUrl: 'https://example.com',
-                            steps: []
+                // Robust Test Wallet - ONLY for development
+                ...(process.env.NODE_ENV === 'development' ? [
+                    () => ({
+                        id: 'test-wallet',
+                        name: 'Test Wallet',
+                        iconUrl: 'https://cdn-icons-png.flaticon.com/512/9187/9187604.png',
+                        iconBackground: '#e0e0e0',
+                        installed: true,
+                        downloadUrls: {
+                            android: 'https://example.com',
+                            ios: 'https://example.com',
+                            qrCode: 'https://example.com',
+                        },
+                        extension: {
+                            instructions: {
+                                learnMoreUrl: 'https://example.com',
+                                steps: []
+                            }
+                        },
+                        createConnector: (walletDetails: any) => {
+                            return createConnector((config: any) => ({
+                                ...mock({
+                                    accounts: [TEST_ADDRESS],
+                                    features: { reconnect: true },
+                                })(config),
+                                ...walletDetails,
+                            }));
                         }
-                    },
-                    createConnector: (walletDetails: any) => {
-                        return createConnector((config: any) => ({
-                            ...mock({
-                                accounts: [TEST_ADDRESS],
-                                features: { reconnect: true },
-                            })(config),
-                            ...walletDetails,
-                        }));
-                    }
-                })
+                    })
+                ] : [])
             ],
         },
         {

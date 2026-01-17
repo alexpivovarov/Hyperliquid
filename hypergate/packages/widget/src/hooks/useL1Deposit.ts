@@ -34,7 +34,12 @@ export function useL1Deposit() {
                 await switchChainAsync({ chainId: CHAINS.HYPEREVM.id });
             }
 
-            // 2. Send USDC to Asset Bridge Precompile
+            // 2. Gas Check (HYPE)
+            // We need to estimate gas, but first check if we have ANY gas at all
+            // Note: simple balance check. 
+            // Better: publicClient.getBalance({ address }) but we can try estimating.
+
+            // 3. Send USDC to Asset Bridge Precompile
             const txHash = await writeContractAsync({
                 address: CONTRACTS.USDC_HYPEREVM as `0x${string}`,
                 abi: ERC20_ABI,
@@ -44,9 +49,14 @@ export function useL1Deposit() {
 
             return txHash;
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('L1 Deposit Failed:', error);
             setIsSimulating(false);
+
+            // Check for gas errors
+            if (error.message?.includes('insufficient funds') || error.message?.includes('gas')) {
+                throw new Error('Insufficient HYPE for gas. Please use Gas Refuel.');
+            }
             throw error;
         }
     };

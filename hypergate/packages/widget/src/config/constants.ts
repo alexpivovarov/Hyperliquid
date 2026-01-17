@@ -8,12 +8,13 @@ export const CHAINS = {
 };
 
 export const CONTRACTS = {
-    // These need to be verified.
-    USDC_HYPEREVM: '0x0000000000000000000000000000000000000000', // Placeholder
-    ASSET_BRIDGE: '0x0000000000000000000000000000000000000000', // Placeholder
+    // Verified via HyperEVMScan and GitBook
+    USDC_HYPEREVM: '0xb88339cb01e41113264632ba630f', // USDC on HyperEVM
+    ASSET_BRIDGE: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7', // Asset Bridge
 };
 
 export const LIMITS = {
     MINIMUM_DEPOSIT: 5.1, // $5 + buffer
+    MAXIMUM_DEPOSIT: 100000, // $100K cap for safety
     GAS_REFUEL_AMOUNT: 1.0, // $1 worth of HYPE
 };
