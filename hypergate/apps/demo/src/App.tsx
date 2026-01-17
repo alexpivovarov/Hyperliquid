@@ -8,6 +8,10 @@ import { HyperGate } from '@hypergate/widget';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { TransactionHistory } from './components/TransactionHistory';
 import { ToastContainer, useToast } from './components/Toast';
+import { Plasma } from './components/Plasma';
+import { TechnicalGrid } from './components/TechnicalGrid';
+import FuzzyText from './components/FuzzyText';
+import ScrollVelocity from './components/ScrollVelocity';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -36,116 +40,193 @@ function BridgePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 font-sans">
-      <header className="w-full max-w-4xl flex flex-col sm:flex-row justify-between items-center gap-4 py-4 sm:py-6">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-purple-600 rounded-lg"></div>
-          <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">HyperGate</span>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          {isDemoMode && (
-            <button
-              onClick={exitDemoMode}
-              className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-purple-600/20 border border-purple-500/50 rounded-lg text-purple-300 hover:bg-purple-600/30 transition-colors"
-            >
-              Exit Demo
-            </button>
-          )}
-          <ConnectButton />
-        </div>
-      </header>
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] font-sans relative overflow-hidden selection:bg-purple-500/30">
 
-      {isDemoMode && (
-        <div className="w-full max-w-4xl mb-4">
-          <div className="p-3 bg-purple-600/20 border border-purple-500/30 rounded-xl text-purple-200 text-sm text-center">
-            🎮 <b>Demo Mode Active</b> — Transactions are simulated. No real funds required.
-          </div>
-        </div>
-      )}
+      {/* 1. Background Layer (Complex but subtle) */}
+      <div className="fixed inset-0 w-full h-full opacity-60 pointer-events-none z-0">
+        <Plasma color="#E4E4E7" speed={0.2} scale={2.5} opacity={0.8} />
+      </div>
 
-      <main className="flex-1 flex flex-col items-center justify-center w-full max-w-md gap-6 sm:gap-8 mt-8 sm:mt-12 px-2">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Bridge to Hyperliquid</h1>
-          <p className="text-sm sm:text-base text-gray-400">One-click atomic deposits to your trading account.</p>
+      {/* 2. Navigation (Floating Dock Style) */}
+      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 p-1.5 bg-[#0E0E10]/80 backdrop-blur-xl border border-white/5 rounded-full shadow-2xl">
+        <div className="flex items-center gap-2 px-3 py-1.5">
+          <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse box-shadow-glow"></div>
+          <span className="text-[13px] font-bold tracking-tight">HyperGate</span>
+          <span className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded-[4px] text-zinc-500 font-mono">v1.0</span>
         </div>
+        <div className="w-px h-4 bg-white/10 mx-1"></div>
 
-        <div className="w-full">
-          {activeAddress ? (
-            <HyperGate userAddress={activeAddress} />
-          ) : (
-            <div className="p-8 border border-white/10 rounded-2xl bg-white/5 text-center space-y-4">
-              <p className="text-gray-400">Connect your wallet or try the demo.</p>
-              <div className="flex flex-col gap-3 items-center">
-                <ConnectButton />
-                <div className="text-gray-500 text-sm">or</div>
-                <button
-                  onClick={enterDemoMode}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 rounded-xl font-semibold transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
-                >
-                  🎮 Try Demo
-                </button>
-                <p className="text-gray-500 text-xs">Experience the full flow without a wallet</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {activeAddress && (
-          <div className="w-full mt-4">
-            <TransactionHistory
-              userAddress={activeAddress}
-              onNotification={handleNotification}
-            />
-          </div>
+        {isDemoMode ? (
+          <button
+            onClick={exitDemoMode}
+            className="px-3 py-1.5 text-[12px] font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20 rounded-full hover:bg-purple-500/20 transition-all font-mono"
+          >
+            EXIT SIMULATION
+          </button>
+        ) : (
+          <button
+            onClick={enterDemoMode}
+            className="px-3 py-1.5 text-[12px] font-medium text-zinc-400 hover:text-white transition-colors font-mono"
+          >
+            TRY DEMO
+          </button>
         )}
 
-        <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-200 text-sm max-w-sm text-center">
-          ⚠️ <b>Note:</b> Ensure you are bridging {'>'} $5 USDC to avoid protocol burn.
+        <div className="pl-1">
+          <ConnectButton.Custom>
+            {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+              return (
+                <button
+                  onClick={mounted && account ? openAccountModal : openConnectModal}
+                  className="px-4 py-1.5 bg-white text-black rounded-full text-[13px] font-semibold hover:bg-gray-200 transition-transform active:scale-95"
+                >
+                  {mounted && account ? account.displayName : "Connect Wallet"}
+                </button>
+              )
+            }}
+          </ConnectButton.Custom>
         </div>
-      </main>
+      </nav>
 
-      {/* How It Works Section */}
-      <section className="w-full max-w-4xl py-16 px-4">
-        <h2 className="text-2xl font-bold text-center mb-8">How It Works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-white/5 border border-white/10 rounded-xl text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl">
-              🔄
-            </div>
-            <h3 className="font-semibold mb-2">1. Select & Swap</h3>
-            <p className="text-sm text-gray-400">
-              Pick any token from any chain. LI.FI finds the optimal swap + bridge route automatically.
-            </p>
-          </div>
-          <div className="p-6 bg-white/5 border border-white/10 rounded-xl text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl">
-              🛡️
-            </div>
-            <h3 className="font-semibold mb-2">2. Safety Check</h3>
-            <p className="text-sm text-gray-400">
-              Our Safety Guard warns you before deposits under $5.10 (Hyperliquid burns smaller amounts).
-            </p>
-          </div>
-          <div className="p-6 bg-white/5 border border-white/10 rounded-xl text-center">
-            <div className="w-12 h-12 mx-auto mb-4 bg-purple-600/20 rounded-full flex items-center justify-center text-2xl">
-              ⚡
-            </div>
-            <h3 className="font-semibold mb-2">3. Atomic Deposit</h3>
-            <p className="text-sm text-gray-400">
-              Funds land directly in your Hyperliquid trading account. Start trading immediately.
-            </p>
-          </div>
-        </div>
-        <div className="mt-8 p-4 bg-purple-600/10 border border-purple-500/20 rounded-xl text-center">
-          <p className="text-sm text-purple-200">
-            <b>Powered by LI.FI</b> — We intercept bridge completion to auto-execute the L1 deposit. Not just a redirect.
+      {/* 3. Main Content (Centered Portal Layout) */}
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
+
+        {/* Typographic Hero */}
+        <div className="text-center mb-8 space-y-4 max-w-2xl relative animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h1 className="text-5xl sm:text-7xl font-bold tracking-tighter text-[var(--text-primary)]">
+            Bridge to <br className="sm:hidden" /> Hyperliquid.
+          </h1>
+          <p className="text-[15px] text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
+            The instant, safe, institutional-grade onboarding layer. <br />
+            <span className="text-[var(--text-tertiary)] font-mono text-xs mt-3 block tracking-widest uppercase">Powered by LI.FI • Zero Loss Guarantee</span>
           </p>
         </div>
-      </section>
 
-      <footer className="mt-auto py-8 text-gray-600 text-sm">
-        Built for LI.FI Hackathon 2025
-      </footer>
+        {/* The Portal (Widget Container) */}
+        <div className="w-full max-w-[380px] mx-auto">
+          <div className="group relative">
+
+            {/* 3. Main Widget Card (White Surface) */}
+            <div className="relative bg-white border border-[var(--border-subtle)] rounded-[28px] shadow-[var(--shadow-float)] overflow-hidden transition-all hover:shadow-2xl">
+              {activeAddress ? (
+                <HyperGate
+                  userAddress={activeAddress}
+                  theme={{
+                    borderRadius: '24px',
+                    primaryColor: '#000000',
+                    containerMaxWidth: '100%'
+                  }}
+                />
+              ) : (
+                <div className="p-8 text-center py-20 space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                  <div className="w-20 h-20 mx-auto bg-black rounded-[24px] flex items-center justify-center shadow-xl rotate-3 transition-transform hover:rotate-6">
+                    <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold font-display text-black tracking-tight">Connect to Bridge</h3>
+                    <p className="text-[15px] text-[var(--text-secondary)]">Access the Hyperliquid ecosystem securely.</p>
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <ConnectButton.Custom>
+                      {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+                        const ready = mounted;
+                        const connected = ready && account && chain;
+                        return (
+                          <div
+                            {...(!ready && {
+                              'aria-hidden': true,
+                              'style': {
+                                opacity: 0,
+                                pointerEvents: 'none',
+                                userSelect: 'none',
+                              },
+                            })}
+                          >
+                            {(() => {
+                              if (!connected) {
+                                return (
+                                  <button onClick={openConnectModal} className="h-12 px-8 bg-black text-white rounded-full text-base font-bold transition-all hover:bg-zinc-800 hover:shadow-lg hover:scale-105 active:scale-95 shadow-md">
+                                    Connect Wallet
+                                  </button>
+                                );
+                              }
+                              return (
+                                <button onClick={openAccountModal} className="h-12 px-8 bg-black text-white rounded-full text-base font-bold transition-all hover:bg-zinc-800 shadow-md">
+                                  {account.displayName}
+                                </button>
+                              );
+                            })()}
+                          </div>
+                        );
+                      }}
+                    </ConnectButton.Custom>
+                  </div>
+
+                  <div className="pt-6 border-t border-zinc-100 mt-8">
+                    <button
+                      onClick={enterDemoMode}
+                      className="group flex items-center justify-center gap-2 mx-auto text-xs font-bold text-[var(--text-tertiary)] hover:text-black transition-colors uppercase tracking-widest"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 group-hover:bg-black transition-colors"></span>
+                      Initialize Simulation
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Ticker / Stats (Minimalist) */}
+        <div className="fixed bottom-8 left-0 w-full text-center pointer-events-none hidden sm:block delay-500 animate-in fade-in slide-in-from-bottom-4">
+          <div className="inline-flex items-center gap-8 px-8 py-3 bg-white/80 backdrop-blur-md rounded-full border border-[var(--border-subtle)] text-[11px] font-bold text-[var(--text-secondary)] shadow-lg uppercase tracking-widest">
+            <span className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              System Operational
+            </span>
+            <span className="w-px h-3 bg-zinc-200"></span>
+            <span className="flex items-center gap-2">
+              Gas: <span className="text-black">0.001 GWEI</span>
+            </span>
+            <span className="w-px h-3 bg-zinc-200"></span>
+            <span className="flex items-center gap-2">
+              Security: <span className="text-black">MAXIMUM</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Scroll Velocity Strip (Bottom Background) */}
+        <div className="fixed bottom-0 left-0 w-full z-0 opacity-[0.03] pointer-events-none select-none mix-blend-multiply overflow-hidden py-4">
+          <ScrollVelocity
+            texts={['HYPERLIQUID BRIDGE • SECURE • FAST • LOW COST • ']}
+            velocity={50}
+            className="custom-scroll-text text-black text-[120px] font-black tracking-tighter"
+          />
+        </div>
+
+        {/* Bottom Right Fuzzy Text (Made With Love) */}
+        <div className="fixed bottom-6 right-8 pointer-events-none opacity-50 hover:opacity-100 transition-opacity z-50">
+          <FuzzyText
+            baseIntensity={0.10}
+            hoverIntensity={0.4}
+            enableHover={true}
+            fontSize="10px"
+            color="#000000"
+            fontFamily="monospace"
+            fontWeight={600}
+          >
+            MADE WITH L(OVE)(IFI)
+          </FuzzyText>
+        </div>
+
+      </main>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
