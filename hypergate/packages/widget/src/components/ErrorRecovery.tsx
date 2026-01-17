@@ -33,7 +33,7 @@ export function ErrorRecovery({ onRetryBridge, onRetryDeposit, onCancel }: Error
                 return {
                     icon: '❌',
                     title: 'Bridge Failed',
-                    description: 'The cross-chain transfer could not be completed. Your funds are safe on the source chain.',
+                    description: 'The transfer couldn\'t complete. Don\'t worry — your funds are still safe in your wallet.',
                     primaryAction: {
                         label: 'Try Again',
                         onClick: () => {
@@ -48,14 +48,14 @@ export function ErrorRecovery({ onRetryBridge, onRetryDeposit, onCancel }: Error
                             onCancel();
                         },
                     },
-                    helpText: 'This can happen due to network congestion or slippage. Try again with a higher gas limit.',
+                    helpText: 'Common causes: network congestion, price moved too much during transfer, or temporary RPC issues. Usually works on retry.',
                 };
 
             case 'DEPOSIT_FAILED':
                 return {
                     icon: '⚠️',
-                    title: 'L1 Deposit Failed',
-                    description: 'Your funds are on HyperEVM but the deposit to your trading account failed.',
+                    title: 'Deposit to Trading Account Failed',
+                    description: 'Your USDC arrived on HyperEVM successfully, but we couldn\'t move it to your Hyperliquid trading account.',
                     primaryAction: {
                         label: 'Retry Deposit',
                         onClick: onRetryDeposit,
@@ -67,40 +67,40 @@ export function ErrorRecovery({ onRetryBridge, onRetryDeposit, onCancel }: Error
                             onCancel();
                         },
                     },
-                    helpText: 'Your USDC is safe on HyperEVM. Click "Retry Deposit" to try again.',
+                    helpText: 'Your funds are safe! The USDC is in your HyperEVM wallet. Click "Retry Deposit" to complete the transfer to your trading account.',
                 };
 
             case 'NO_GAS':
                 return {
                     icon: '⛽',
-                    title: 'Insufficient Gas',
-                    description: 'You need HYPE tokens to pay for the L1 deposit transaction.',
+                    title: 'Need Gas Tokens',
+                    description: 'To complete the deposit, you need a small amount of HYPE (the native token on HyperEVM) to pay for transaction fees.',
                     primaryAction: {
-                        label: 'Get Gas',
+                        label: 'Get Free HYPE',
                         onClick: () => {
                             window.open('https://app.hyperliquid.xyz/drip', '_blank');
                         },
                     },
                     secondaryAction: {
-                        label: 'Retry',
+                        label: 'I Have HYPE Now',
                         onClick: onRetryDeposit,
                     },
-                    helpText: 'Enable "Gas Refuel" option when bridging to automatically receive HYPE for gas.',
+                    helpText: 'Click "Get Free HYPE" to receive gas tokens from the Hyperliquid faucet. Then come back and click "I Have HYPE Now" to continue.',
                 };
 
             case 'BELOW_MINIMUM':
                 return {
                     icon: '🚫',
-                    title: 'Amount Too Low',
-                    description: 'Deposits below $5.10 will be burned by Hyperliquid. Please increase your amount.',
+                    title: 'Amount Below Minimum',
+                    description: 'Hyperliquid requires deposits of at least $5.10. Smaller amounts are rejected by the protocol and cannot be recovered.',
                     primaryAction: {
-                        label: 'Start Over',
+                        label: 'Try a Larger Amount',
                         onClick: () => {
                             reset();
                             onCancel();
                         },
                     },
-                    helpText: 'The minimum deposit amount is $5.10 to ensure your funds are not lost.',
+                    helpText: 'This is a Hyperliquid protocol rule to prevent spam. Bridge $5.10 or more to ensure your deposit goes through.',
                 };
 
             default:
