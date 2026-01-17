@@ -100,7 +100,7 @@ function getRateLimitFromMemory(
     memoryStore.set(key, existing);
 
     return {
-        remaining: Math.max(0, maxRequests - existing.count),
+        remaining: maxRequests - existing.count,
         resetTime: existing.resetTime,
         total: maxRequests,
     };
@@ -133,7 +133,7 @@ export function rateLimit(options: RateLimitConfig) {
 
             // Set rate limit headers
             res.setHeader('X-RateLimit-Limit', info.total);
-            res.setHeader('X-RateLimit-Remaining', info.remaining);
+            res.setHeader('X-RateLimit-Remaining', Math.max(0, info.remaining));
             res.setHeader('X-RateLimit-Reset', Math.ceil(info.resetTime / 1000));
 
             if (info.remaining < 0) {
