@@ -102,10 +102,27 @@ export function TransactionHistory({ userAddress, onNotification }: TransactionH
 
     if (loading && deposits.length === 0) {
         return (
-            <div className="w-full p-4 border border-white/10 rounded-xl bg-white/5">
-                <div className="flex items-center justify-center gap-2 text-gray-400">
-                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Loading history...
+            <div className="w-full border border-white/10 rounded-xl bg-white/5 overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                    <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-white/10 rounded animate-pulse" />
+                </div>
+                <div className="divide-y divide-white/5">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="px-4 py-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-5 w-20 bg-white/10 rounded animate-pulse" />
+                                    <div className="h-4 w-16 bg-white/5 rounded animate-pulse" />
+                                </div>
+                                <div className="h-5 w-16 bg-white/10 rounded animate-pulse" />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="h-3 w-24 bg-white/5 rounded animate-pulse" />
+                                <div className="h-3 w-32 bg-white/5 rounded animate-pulse" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );
@@ -113,8 +130,16 @@ export function TransactionHistory({ userAddress, onNotification }: TransactionH
 
     if (error && deposits.length === 0) {
         return (
-            <div className="w-full p-4 border border-red-500/20 rounded-xl bg-red-500/5 text-red-400 text-center text-sm">
-                {error}
+            <div className="w-full p-4 border border-white/10 rounded-xl bg-white/5">
+                <div className="text-center">
+                    <div className="text-gray-400 text-sm mb-2">Unable to load transaction history</div>
+                    <button
+                        onClick={() => { setLoading(true); fetchDeposits(); }}
+                        className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                    >
+                        Try again
+                    </button>
+                </div>
             </div>
         );
     }

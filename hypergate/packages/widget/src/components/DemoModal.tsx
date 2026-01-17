@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface DemoModalProps {
     isOpen: boolean;
@@ -6,23 +6,52 @@ interface DemoModalProps {
     onSubmit: (amount: number) => void;
 }
 
+const MIN_SAFE_AMOUNT = 5.10;
+const MAX_AMOUNT = 10000;
+
 export function DemoModal({ isOpen, onClose, onSubmit }: DemoModalProps) {
     const [amount, setAmount] = useState('7.00');
-    const [error, setError] = useState<string | null>(null);
+
+    const validation = useMemo(() => {
+        const trimmed = amount.trim();
+        if (!trimmed) {
+            return { isValid: false, error: null, warning: null };
+        }
+
+        const parsed = parseFloat(trimmed);
+
+        if (isNaN(parsed)) {
+            return { isValid: false, error: 'Enter a valid number', warning: null };
+        }
+        if (parsed <= 0) {
+            return { isValid: false, error: 'Amount must be greater than 0', warning: null };
+        }
+        if (parsed > MAX_AMOUNT) {
+            return { isValid: false, error: `Maximum demo amount is $${MAX_AMOUNT.toLocaleString()}`, warning: null };
+        }
+        if (parsed < MIN_SAFE_AMOUNT) {
+            return {
+                isValid: true,
+                error: null,
+                warning: `Amounts below $${MIN_SAFE_AMOUNT.toFixed(2)} will trigger a Safety Guard warning`
+            };
+        }
+
+        return { isValid: true, error: null, warning: null };
+    }, [amount]);
 
     if (!isOpen) return null;
 
     const handleSubmit = () => {
-        const parsed = parseFloat(amount);
-        if (isNaN(parsed) || parsed <= 0) {
-            setError('Please enter a valid amount');
-            return;
+        if (!validation.isValid) return;
+        onSubmit(parseFloat(amount));
+    };
+
+    const handleAmountChange = (value: string) => {
+        // Allow empty, digits, and single decimal point
+        if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+            setAmount(value);
         }
-        if (parsed > 10000) {
-            setError('Maximum demo amount is $10,000');
-            return;
-        }
-        onSubmit(parsed);
     };
 
     const presetAmounts = [5, 10, 25, 100];
@@ -65,25 +94,29 @@ export function DemoModal({ isOpen, onClose, onSubmit }: DemoModalProps) {
                 </div>
 
                 {/* Custom Amount Input */}
-                <div className="relative mb-4">
+                <div className="relative mb-2">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
                     <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={amount}
-                        onChange={(e) => {
-                            setAmount(e.target.value);
-                            setError(null);
-                        }}
+                        onChange={(e) => handleAmountChange(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-8 pr-4 py-4 bg-black/50 border border-white/10 rounded-xl text-white text-lg font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                        min="0"
-                        step="0.01"
+                        className={`w-full pl-8 pr-4 py-4 bg-black/50 border rounded-xl text-white text-lg font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                            validation.error ? 'border-red-500/50' : validation.warning ? 'border-yellow-500/50' : 'border-white/10'
+                        }`}
                     />
                 </div>
 
-                {error && (
-                    <p className="text-red-400 text-sm mb-4">{error}</p>
-                )}
+                {/* Validation feedback */}
+                <div className="h-6 mb-2">
+                    {validation.error && (
+                        <p className="text-red-400 text-sm">{validation.error}</p>
+                    )}
+                    {validation.warning && !validation.error && (
+                        <p className="text-yellow-400 text-sm">{validation.warning}</p>
+                    )}
+                </div>
 
                 {/* Info Box */}
                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg mb-6">
@@ -102,7 +135,12 @@ export function DemoModal({ isOpen, onClose, onSubmit }: DemoModalProps) {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-medium text-white transition-colors active:scale-[0.98]"
+                        disabled={!validation.isValid}
+                        className={`flex-1 py-3 rounded-xl font-medium text-white transition-colors active:scale-[0.98] ${
+                            validation.isValid
+                                ? 'bg-purple-600 hover:bg-purple-500'
+                                : 'bg-purple-600/50 cursor-not-allowed'
+                        }`}
                     >
                         Start Demo
                     </button>
