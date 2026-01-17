@@ -72,7 +72,6 @@ export function HyperGate({
     const lastTxHashRef = useRef<string | null>(null);
 
     // Theme defaults
-    const primaryColor = theme?.primaryColor || '#A855F7';
     const borderRadius = theme?.borderRadius || '24px';
     const containerMaxWidth = theme?.containerMaxWidth || '400px';
 
@@ -101,10 +100,19 @@ export function HyperGate({
                 borderRadius: '16px',
                 maxWidth: '100%',
                 boxShadow: 'none',
+                border: 'none',
             },
             palette: {
-                primary: { main: primaryColor },
+                primary: { main: '#000000' },
+                secondary: { main: '#F4F4F5' },
             },
+            shape: {
+                borderRadius: 12,
+                borderRadiusSecondary: 12,
+            },
+            typography: {
+                fontFamily: 'Inter, sans-serif',
+            }
         },
     };
 
@@ -386,13 +394,13 @@ export function HyperGate({
 
     return (
         <div
-            className={`hypergate-widget-container flex flex-col items-center justify-center min-h-[500px] w-full mx-auto bg-neutral-900/90 backdrop-blur-xl border border-white/10 ring-1 ring-inset ring-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-4 font-sans ${className}`}
+            className={`hypergate-widget-container flex flex-col items-center justify-center min-h-[500px] w-full mx-auto bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-[var(--shadow-float)] p-6 font-sans relative overflow-hidden ${className}`}
             style={containerStyle}
         >
             {/* Progress Steps */}
             {showProgress && <ProgressSteps />}
 
-            <div className="w-full h-full text-white relative flex-1">
+            <div className="w-full h-full text-[var(--text-primary)] relative flex-1">
                 {/* Demo Modal */}
                 <DemoModal
                     isOpen={showDemoModal}
@@ -411,28 +419,29 @@ export function HyperGate({
 
                 {/* Balance Verification Loading Overlay */}
                 {isVerifyingBalance && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-6">
-                        <svg className="w-12 h-12 animate-spin mb-4" style={{ color: primaryColor }} fill="none" viewBox="0 0 24 24">
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm p-6 fade-in">
+                        <svg className="w-12 h-12 animate-spin mb-4 text-black" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <div className="text-lg font-medium mb-2">Verifying Balance</div>
-                        <div className="text-sm text-gray-400">Confirming funds arrived on HyperEVM...</div>
+                        <div className="text-lg font-bold mb-1">Verifying Balance</div>
+                        <div className="text-sm text-[var(--text-secondary)]">Confirming funds arrived on HyperEVM...</div>
                     </div>
                 )}
 
                 {/* Retry Error Modal */}
                 {showRetryError && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-6">
-                        <div className="text-4xl mb-4">❌</div>
-                        <div className="text-lg font-medium mb-2">Unable to Retry</div>
-                        <div className="text-sm text-gray-400 text-center mb-6 max-w-[280px]">
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 p-6 text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4 text-2xl text-red-500">
+                            ✕
+                        </div>
+                        <div className="text-lg font-bold mb-2">Unable to Retry</div>
+                        <div className="text-sm text-[var(--text-secondary)] mb-6 max-w-[280px]">
                             Could not determine deposit amount. Please start a new bridge transaction.
                         </div>
                         <button
                             onClick={() => { setShowRetryError(false); reset(); }}
-                            className="px-6 py-3 rounded-xl font-medium transition-all active:scale-[0.98]"
-                            style={{ backgroundColor: primaryColor }}
+                            className="px-6 py-2.5 bg-black text-white rounded-[10px] font-medium hover:bg-zinc-800 transition-all active:scale-[0.98]"
                         >
                             Start Over
                         </button>
@@ -440,39 +449,43 @@ export function HyperGate({
                 )}
 
                 {state === 'SAFETY_GUARD' && safetyPayload && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-6 animate-in fade-in zoom-in-95 duration-200">
-                        <div className={`text-4xl mb-4 ${safetyPayload.isSafe ? 'text-green-500' : 'text-red-500'}`}>
-                            {safetyPayload.isSafe ? '🛡️' : '⚠️'}
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white p-6 animate-in fade-in duration-200">
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${safetyPayload.isSafe ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                            {safetyPayload.isSafe ? (
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
+                            ) : (
+                                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            )}
                         </div>
-                        <h3 className="text-xl font-bold mb-6">Safety Guard Check</h3>
+                        <h3 className="text-xl font-bold mb-6 font-display text-[var(--text-primary)]">Safety Check</h3>
 
-                        <div className="w-full space-y-3 mb-8">
-                            <div className="flex justify-between text-gray-400">
-                                <span>Input</span>
-                                <span>${safetyPayload.inputAmount.toFixed(2)}</span>
+                        <div className="w-full space-y-4 mb-8">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-[var(--text-secondary)]">Initial Input</span>
+                                <span className="font-medium font-mono text-[var(--text-primary)]">${safetyPayload.inputAmount.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-red-400">
-                                <span>Bridge Fee (Est.)</span>
-                                <span>-${safetyPayload.bridgeFee.toFixed(2)}</span>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-[var(--text-secondary)]">Bridge Fee</span>
+                                <span className="font-medium font-mono text-amber-600">-${safetyPayload.bridgeFee.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-red-400">
-                                <span>Gas Cost</span>
-                                <span>-${safetyPayload.gasCost.toFixed(2)}</span>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-[var(--text-secondary)]">Gas Costs</span>
+                                <span className="font-medium font-mono text-amber-600">-${safetyPayload.gasCost.toFixed(2)}</span>
                             </div>
-                            <div className="h-px bg-white/10 my-2"></div>
-                            <div className={`flex justify-between font-bold text-lg ${safetyPayload.isSafe ? 'text-green-400' : 'text-red-500'}`}>
-                                <span>Est. Received</span>
-                                <span>${safetyPayload.netAmount.toFixed(2)}</span>
+                            <div className="h-px bg-[var(--border-subtle)] my-2"></div>
+                            <div className="flex justify-between items-center text-base font-bold">
+                                <span className="text-[var(--text-primary)]">Net Received</span>
+                                <span className={`font-mono ${safetyPayload.isSafe ? 'text-green-600' : 'text-red-500'}`}>${safetyPayload.netAmount.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <div className="flex justify-between text-xs text-[var(--text-tertiary)] mt-1">
                                 <span>Minimum Required</span>
-                                <span>$5.10</span>
+                                <span className="font-mono">$5.10</span>
                             </div>
                         </div>
 
                         {!safetyPayload.isSafe && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-200 text-xs text-center mb-6">
-                                <b>CRITICAL WARNING:</b> You will receive less than $5. Hyperliquid will <b>BURN</b> this deposit.
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-[10px] text-red-600 text-xs text-center mb-6 font-medium">
+                                Funds will be burned by Hyperliquid protocol if deposited (&lt; $5.10).
                             </div>
                         )}
 
@@ -480,7 +493,7 @@ export function HyperGate({
                             <div className="flex gap-3 w-full">
                                 <button
                                     onClick={() => { setStateWithCallback('IDLE'); setIsConfirmingRisk(false); }}
-                                    className="flex-1 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-medium transition-colors active:scale-[0.98]"
+                                    className="flex-1 py-3 bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-zinc-200 rounded-[10px] font-semibold transition-colors active:scale-[0.98]"
                                 >
                                     Cancel
                                 </button>
@@ -492,17 +505,17 @@ export function HyperGate({
                                             if (!isConfirmingRisk) {
                                                 setIsConfirmingRisk(true);
                                             } else {
-                                                setIsConfirmingRisk(false); // Toggle off if clicked again? Or keep it? Let's just keep it simple.
+                                                setIsConfirmingRisk(false);
                                             }
                                         }
                                     }}
                                     disabled={!safetyPayload.isSafe && isConfirmingRisk}
-                                    className={`flex-1 py-3 rounded-xl font-medium transition-all shadow-lg 
+                                    className={`flex-1 py-3 rounded-[10px] font-semibold transition-all shadow-sm
                                         ${safetyPayload.isSafe
-                                            ? 'bg-green-600 hover:bg-green-500'
+                                            ? 'bg-black text-white hover:bg-zinc-800'
                                             : isConfirmingRisk
-                                                ? 'bg-red-600/50 grayscale cursor-not-allowed'
-                                                : 'bg-red-600 hover:bg-red-500'
+                                                ? 'bg-red-100 text-red-300 cursor-not-allowed'
+                                                : 'bg-red-600 text-white hover:bg-red-700'
                                         }`}
                                 >
                                     {safetyPayload.isSafe ? 'Proceed' : 'Risk It'}
@@ -511,16 +524,13 @@ export function HyperGate({
 
                             {isConfirmingRisk && !safetyPayload.isSafe && (
                                 <div className="w-full animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <div className="relative">
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[6px] w-3 h-3 bg-red-900 rotate-45 border-l border-t border-red-800"></div>
-                                        <button
-                                            onClick={() => proceedWithBridge()}
-                                            className="w-full py-4 bg-red-900 hover:bg-red-800 border border-red-800 rounded-xl font-bold text-red-100 transition-colors shadow-xl flex flex-col items-center gap-1"
-                                        >
-                                            <span className="text-lg">ARE YOU SURE?</span>
-                                            <span className="text-[10px] font-normal opacity-80">Funds will likely be lost permanently.</span>
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={() => proceedWithBridge()}
+                                        className="w-full py-3.5 bg-red-600 hover:bg-red-700 rounded-[10px] font-bold text-white transition-colors shadow-lg flex flex-col items-center gap-0.5"
+                                    >
+                                        <span className="text-sm">I UNDERSTAND THE RISK</span>
+                                        <span className="text-[10px] opacity-90 uppercase tracking-wider">Depositing anyway</span>
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -534,24 +544,31 @@ export function HyperGate({
                         {isDemoMode && state === 'IDLE' && (
                             <button
                                 onClick={() => setShowDemoModal(true)}
-                                className="w-full py-3 bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 rounded-xl text-sm font-semibold hover:bg-yellow-500/30 transition-colors active:scale-[0.98]"
+                                className="w-full py-3 bg-amber-50 text-amber-700 border border-amber-100 rounded-[12px] text-sm font-semibold hover:bg-amber-100 transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
                             >
-                                ⚡ Simulate Bridge (Demo)
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                Simulate Bridge (Demo)
                             </button>
                         )}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center space-y-6 py-16 text-center animate-in fade-in duration-500">
+                    <div className="flex flex-col items-center justify-center space-y-8 py-12 text-center animate-in fade-in duration-500">
                         <div className="relative">
-                            <div className="absolute inset-0 blur-xl rounded-full" style={{ backgroundColor: `${primaryColor}33` }}></div>
-                            <div className="text-5xl relative z-10">{state === 'SUCCESS' ? '🎉' : '🔄'}</div>
+                            <div className="absolute inset-0 bg-black/5 rounded-full blur-xl scale-150"></div>
+                            <div className="w-20 h-20 bg-black text-white rounded-full flex items-center justify-center text-3xl shadow-xl relative z-10">
+                                {state === 'SUCCESS' ?
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    :
+                                    <svg className="animate-spin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                }
+                            </div>
                         </div>
 
                         <div className="space-y-3">
-                            <div className="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                                {state === 'SUCCESS' ? 'Funds Arrived!' : 'Depositing to L1...'}
+                            <div className="text-2xl font-bold font-display text-[var(--text-primary)]">
+                                {state === 'SUCCESS' ? 'Funds Arrived' : 'Depositing...'}
                             </div>
-                            <div className="text-sm text-gray-400 max-w-[280px] mx-auto leading-relaxed">
+                            <div className="text-sm text-[var(--text-secondary)] max-w-[280px] mx-auto leading-relaxed">
                                 {state === 'SUCCESS'
                                     ? 'Your USDC is now in your Hyperliquid Trading Account. Ready to trade.'
                                     : 'Bridging complete. Now forwarding to your trading account. Please sign the transaction.'}
@@ -559,8 +576,8 @@ export function HyperGate({
                         </div>
 
                         {state === 'DEPOSITING' && isDepositingL1 && (
-                            <div className="flex items-center gap-2 text-sm animate-pulse" style={{ color: primaryColor }}>
-                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-subtle)] rounded-full text-xs font-medium text-[var(--text-primary)]">
+                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
@@ -569,17 +586,16 @@ export function HyperGate({
                         )}
 
                         {state === 'SUCCESS' && (
-                            <div className="flex flex-col gap-3 w-full max-w-[200px]">
+                            <div className="flex flex-col gap-3 w-full max-w-[240px]">
                                 <button
                                     onClick={() => window.open('https://app.hyperliquid.xyz/trade', '_blank')}
-                                    className="w-full px-6 py-3 rounded-xl font-medium transition-all active:scale-[0.98] shadow-lg"
-                                    style={{ backgroundColor: primaryColor }}
+                                    className="w-full px-6 py-3.5 bg-black text-white rounded-[12px] font-bold transition-all hover:bg-zinc-800 shadow-lg active:scale-[0.98]"
                                 >
                                     Open Terminal
                                 </button>
                                 <button
                                     onClick={() => { reset(); notifyStatusChange('IDLE'); }}
-                                    className="w-full px-6 py-2 text-gray-400 hover:text-white text-sm transition-colors"
+                                    className="w-full px-6 py-2 text-[var(--text-tertiary)] hover:text-black text-sm transition-colors font-medium"
                                 >
                                     Bridge More
                                 </button>

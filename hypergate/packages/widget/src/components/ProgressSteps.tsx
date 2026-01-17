@@ -1,4 +1,4 @@
-import { useBridgeState, BridgeState } from '../stores/useBridgeState';
+import { useBridgeState, type BridgeState } from '../stores/useBridgeState';
 
 interface Step {
     id: string;
