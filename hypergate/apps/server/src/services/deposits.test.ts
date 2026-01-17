@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import depositService from './deposits.js';
 
+// Valid 64-char transaction hash for tests
+const VALID_TX_HASH = '0x1234567890123456789012345678901234567890123456789012345678901234';
+
 describe('DepositService', () => {
     beforeEach(() => {
         // Clear deposits between tests
@@ -21,11 +24,11 @@ describe('DepositService', () => {
 
             expect(deposit).toBeDefined();
             expect(deposit.id).toBeDefined();
-            expect(deposit.userAddress).toBe(data.userAddress);
+            expect(deposit.userAddress).toBe(data.userAddress.toLowerCase());
             expect(deposit.sourceChain).toBe(data.sourceChain);
             expect(deposit.sourceToken).toBe(data.sourceToken);
             expect(deposit.sourceAmount).toBe(data.sourceAmount);
-            expect(deposit.expectedDestinationAmount).toBe(data.expectedDestinationAmount);
+            expect(deposit.destinationAmount).toBe(data.expectedDestinationAmount);
             expect(deposit.status).toBe('PENDING');
             expect(deposit.createdAt).toBeDefined();
             expect(deposit.updatedAt).toBeDefined();
@@ -102,7 +105,7 @@ describe('DepositService', () => {
 
             expect(total).toBe(2);
             expect(deposits).toHaveLength(2);
-            deposits.forEach((d) => expect(d.userAddress).toBe(user1));
+            deposits.forEach((d) => expect(d.userAddress).toBe(user1.toLowerCase()));
         });
 
         it('should handle pagination correctly', async () => {
@@ -146,15 +149,13 @@ describe('DepositService', () => {
 
             const updated = await depositService.updateStatus(deposit.id, {
                 status: 'BRIDGING',
-                txHash: '0xabc123',
+                txHash: VALID_TX_HASH,
             });
 
             expect(updated).toBeDefined();
             expect(updated!.status).toBe('BRIDGING');
-            expect(updated!.txHash).toBe('0xabc123');
-            expect(new Date(updated!.updatedAt).getTime()).toBeGreaterThan(
-                new Date(deposit.updatedAt).getTime()
-            );
+            expect(updated!.bridgeTxHash).toBe(VALID_TX_HASH);
+            expect(updated!.updatedAt.getTime()).toBeGreaterThan(deposit.updatedAt.getTime());
         });
 
         it('should set completedAt when status is COMPLETED', async () => {
@@ -168,6 +169,7 @@ describe('DepositService', () => {
 
             const updated = await depositService.updateStatus(deposit.id, {
                 status: 'COMPLETED',
+                txHash: VALID_TX_HASH,
             });
 
             expect(updated!.completedAt).toBeDefined();
@@ -176,6 +178,7 @@ describe('DepositService', () => {
         it('should return null for non-existent deposit', async () => {
             const updated = await depositService.updateStatus('non-existent', {
                 status: 'COMPLETED',
+                txHash: VALID_TX_HASH,
             });
 
             expect(updated).toBeNull();
@@ -203,8 +206,8 @@ describe('DepositService', () => {
                 expectedDestinationAmount: '2000000',
             });
 
-            await depositService.updateStatus(d1.id, { status: 'COMPLETED' });
-            await depositService.updateStatus(d2.id, { status: 'BRIDGING' });
+            await depositService.updateStatus(d1.id, { status: 'COMPLETED', txHash: VALID_TX_HASH });
+            await depositService.updateStatus(d2.id, { status: 'BRIDGING', txHash: VALID_TX_HASH });
 
             const stats = await depositService.getStats();
 
@@ -230,7 +233,7 @@ describe('DepositService', () => {
             const deposits = await depositService.getByUser(deposit.userAddress, 1, 10);
             const staleDeposit = deposits.deposits[0];
             // @ts-ignore - accessing private property for test
-            staleDeposit.createdAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+            staleDeposit.createdAt = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
             // Run cleanup with 1 minute timeout
             const cleaned = await depositService.cleanupStaleDeposits(1);

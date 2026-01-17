@@ -93,10 +93,7 @@ export function HyperGate({ userAddress }: HyperGateProps) {
                 if (!/^\d+$/.test(route.toAmount)) throw new Error('Invalid amount format');
                 amount = BigInt(route.toAmount);
 
-                // Cap at Maximum Deposit Limit
-                const maxDeposit = BigInt(LIMITS.MAXIMUM_DEPOSIT) * BigInt(1e6); // Assuming ~1 USDC = 1e6. Rough check.
-                // Better: Check decimals dynamically or assume 6 for USDC.
-                // For now, simple sanity check against massive numbers
+                // Sanity check against maximum deposit limit
                 if (parseFloat(route.toAmountUSD) > LIMITS.MAXIMUM_DEPOSIT) {
                     throw new Error('Amount exceeds maximum deposit limit');
                 }
