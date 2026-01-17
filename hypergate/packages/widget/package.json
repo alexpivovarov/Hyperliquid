@@ -7,7 +7,7 @@
   "author": "HyperGate",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hypergate/hypergate"
+    "url": "https://github.com/0-robert/Hyperliquid"
   },
   "main": "src/index.ts",
   "exports": {
