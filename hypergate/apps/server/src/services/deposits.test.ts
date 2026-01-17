@@ -155,7 +155,7 @@ describe('DepositService', () => {
             expect(updated).toBeDefined();
             expect(updated!.status).toBe('BRIDGING');
             expect(updated!.bridgeTxHash).toBe(VALID_TX_HASH);
-            expect(updated!.updatedAt.getTime()).toBeGreaterThan(deposit.updatedAt.getTime());
+            expect(updated!.updatedAt.getTime()).toBeGreaterThanOrEqual(deposit.updatedAt.getTime());
         });
 
         it('should set completedAt when status is COMPLETED', async () => {

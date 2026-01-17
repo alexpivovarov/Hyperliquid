@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
-import depositService from '../services/deposits.js';
+import { depositService } from '../services/index.js';
 import blockchainService from '../services/blockchain.js';
 import { ApiError } from '../middleware/errorHandler.js';
 import {
@@ -39,7 +39,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
  * Get deposit by ID
  * GET /api/deposits/:id
  */
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const deposit = await depositService.getById(id);
@@ -66,11 +66,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
  * Get deposits by user address
  * GET /api/deposits/user/:address
  */
-router.get('/user/:address', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/user/:address', async (req: Request<{ address: string }>, res: Response, next: NextFunction) => {
     try {
         const { address } = req.params;
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = Math.min(parseInt(req.query.limit as string) || 10, 100);
+        const page = parseInt(String(req.query.page || '1'));
+        const limit = Math.min(parseInt(String(req.query.limit || '10')), 100);
 
         if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
             throw ApiError.badRequest('Invalid Ethereum address');
@@ -102,7 +102,7 @@ router.get('/user/:address', async (req: Request, res: Response, next: NextFunct
  * Update deposit status (webhook from frontend or internal)
  * PATCH /api/deposits/:id/status
  */
-router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
+router.patch('/:id/status', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
         const update = UpdateDepositStatusSchema.parse(req.body);

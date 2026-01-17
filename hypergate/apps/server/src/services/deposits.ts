@@ -4,14 +4,15 @@ import type { Deposit, CreateDepositRequest, UpdateDepositStatus } from '../type
 
 /**
  * In-memory deposit storage
- * TODO: Replace with Prisma/PostgreSQL for production
+ * Used as fallback when PostgreSQL is not available
  */
 const deposits = new Map<string, Deposit>();
 const depositsByUser = new Map<string, Set<string>>();
 const depositsByTxHash = new Map<string, string>();
 
 /**
- * Deposit service for managing deposit records
+ * In-memory deposit service for managing deposit records
+ * Used as fallback when PostgreSQL is not available
  */
 export class DepositService {
     /**
