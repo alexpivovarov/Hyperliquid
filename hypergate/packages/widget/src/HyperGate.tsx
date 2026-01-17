@@ -1,21 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { LiFiWidget, useWidgetEvents, WidgetEvent } from '@lifi/widget';
 import { useBridgeState } from './stores/useBridgeState';
-import { CHAINS, CONTRACTS, LIMITS } from './config/constants'; // Added LIMITS
-import { usePublicClient, useAccount } from 'wagmi'; // Added usePublicClient, useAccount
-import { parseAbi } from 'viem'; // Added parseAbi
+import { CHAINS, CONTRACTS, LIMITS } from './config/constants';
+import { usePublicClient } from 'wagmi';
+import { parseAbi } from 'viem';
+import { useL1Deposit } from './hooks/useL1Deposit';
+import { apiClient } from './services/api';
 import './index.css';
 
 interface HyperGateProps {
     userAddress: string;
 }
 
-import { useL1Deposit } from './hooks/useL1Deposit';
-
 export function HyperGate({ userAddress }: HyperGateProps) {
     const { state, setState, setError, setSafetyPayload, safetyPayload } = useBridgeState();
     const widgetEvents = useWidgetEvents();
     const { depositToL1, isLoading: isDepositingL1 } = useL1Deposit();
+    const publicClient = usePublicClient();
+
+    // Local state
+    const [isConfirmingRisk, setIsConfirmingRisk] = useState(false);
+    const depositIdRef = useRef<string | null>(null);
 
     // Configuration for the widget
     const widgetConfig: any = {
@@ -40,8 +45,6 @@ export function HyperGate({ userAddress }: HyperGateProps) {
 
     // Stored route to resume after safety check
     const [_pendingRoute, setPendingRoute] = useState<any>(null);
-    const publicClient = usePublicClient();
-    const { address } = useAccount();
 
     const handleSafetyCheck = (route: any) => {
         // Parse fee data
@@ -137,9 +140,38 @@ export function HyperGate({ userAddress }: HyperGateProps) {
 
             setState('DEPOSITING');
 
+            // Notify backend that bridge completed
+            if (depositIdRef.current && route.transactionHash) {
+                try {
+                    await apiClient.notifyBridgeSuccess(
+                        depositIdRef.current,
+                        route.transactionHash,
+                        amount.toString()
+                    );
+                    console.log('📝 Backend notified of bridge success');
+                } catch (err) {
+                    console.warn('Failed to notify backend of bridge success:', err);
+                }
+            }
+
             try {
                 // Auto-trigger deposit (User needs to sign)
-                await depositToL1(amount);
+                const txHash = await depositToL1(amount);
+
+                // Notify backend that L1 deposit completed
+                if (depositIdRef.current && txHash) {
+                    try {
+                        await apiClient.notifyL1Success(
+                            depositIdRef.current,
+                            txHash,
+                            amount.toString()
+                        );
+                        console.log('📝 Backend notified of L1 deposit success');
+                    } catch (err) {
+                        console.warn('Failed to notify backend of L1 success:', err);
+                    }
+                }
+
                 setState('SUCCESS');
             } catch (err) {
                 console.error('❌ L1 Deposit Failed:', err);
@@ -153,8 +185,27 @@ export function HyperGate({ userAddress }: HyperGateProps) {
             setError('BRIDGE_FAILED');
         };
 
-        const onRouteExecutionStarted = (route: any) => {
+        const onRouteExecutionStarted = async (route: any) => {
             handleSafetyCheck(route);
+
+            // Create deposit record in backend
+            try {
+                const response = await apiClient.createDeposit({
+                    userAddress,
+                    sourceChain: route.fromChainId?.toString() || 'unknown',
+                    sourceToken: route.fromToken?.symbol || 'USDC',
+                    sourceAmount: route.fromAmount || '0',
+                    expectedDestinationAmount: route.toAmount || '0',
+                });
+
+                if (response.success && response.data) {
+                    depositIdRef.current = response.data.id;
+                    console.log('📝 Deposit record created:', response.data.id);
+                }
+            } catch (err) {
+                console.warn('Failed to create deposit record:', err);
+                // Non-blocking - continue with bridge even if backend fails
+            }
         };
 
         widgetEvents.on(WidgetEvent.RouteExecutionCompleted, onRouteExecuted);

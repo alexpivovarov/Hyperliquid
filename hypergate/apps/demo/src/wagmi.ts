@@ -72,7 +72,7 @@ const connectors = connectorsForWallets(
     ],
     {
         appName: 'HyperGate Demo',
-        projectId: 'YOUR_PROJECT_ID',
+        projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
     }
 );
 

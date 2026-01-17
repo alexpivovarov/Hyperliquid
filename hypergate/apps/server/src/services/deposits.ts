@@ -162,6 +162,15 @@ export class DepositService {
     }
 
     /**
+     * Clear all deposits (for testing only)
+     */
+    clearAll(): void {
+        deposits.clear();
+        depositsByUser.clear();
+        depositsByTxHash.clear();
+    }
+
+    /**
      * Mark stale pending deposits as failed
      * Should be run periodically
      */
