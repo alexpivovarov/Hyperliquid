@@ -28,48 +28,50 @@ export const hyperEvm = defineChain({
 const TEST_ADDRESS = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'; // Vitalik.eth
 
 // 2. Setup Connectors
+const isDevelopment = import.meta.env.DEV;
+
+const walletGroups = [
+    // Only include Development group in dev mode
+    ...(isDevelopment ? [{
+        groupName: 'Development',
+        wallets: [
+            () => ({
+                id: 'test-wallet',
+                name: 'Test Wallet',
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/9187/9187604.png',
+                iconBackground: '#e0e0e0',
+                installed: true,
+                downloadUrls: {
+                    android: 'https://example.com',
+                    ios: 'https://example.com',
+                    qrCode: 'https://example.com',
+                },
+                extension: {
+                    instructions: {
+                        learnMoreUrl: 'https://example.com',
+                        steps: []
+                    }
+                },
+                createConnector: (walletDetails: any) => {
+                    return createConnector((config: any) => ({
+                        ...mock({
+                            accounts: [TEST_ADDRESS],
+                            features: { reconnect: true },
+                        })(config),
+                        ...walletDetails,
+                    }));
+                }
+            })
+        ],
+    }] : []),
+    {
+        groupName: 'Recommended',
+        wallets: [rainbowWallet, metaMaskWallet, coinbaseWallet],
+    },
+];
+
 const connectors = connectorsForWallets(
-    [
-        {
-            groupName: 'Development',
-            wallets: [
-                // Robust Test Wallet - ONLY for development
-                ...(process.env.NODE_ENV === 'development' ? [
-                    () => ({
-                        id: 'test-wallet',
-                        name: 'Test Wallet',
-                        iconUrl: 'https://cdn-icons-png.flaticon.com/512/9187/9187604.png',
-                        iconBackground: '#e0e0e0',
-                        installed: true,
-                        downloadUrls: {
-                            android: 'https://example.com',
-                            ios: 'https://example.com',
-                            qrCode: 'https://example.com',
-                        },
-                        extension: {
-                            instructions: {
-                                learnMoreUrl: 'https://example.com',
-                                steps: []
-                            }
-                        },
-                        createConnector: (walletDetails: any) => {
-                            return createConnector((config: any) => ({
-                                ...mock({
-                                    accounts: [TEST_ADDRESS],
-                                    features: { reconnect: true },
-                                })(config),
-                                ...walletDetails,
-                            }));
-                        }
-                    })
-                ] : [])
-            ],
-        },
-        {
-            groupName: 'Recommended',
-            wallets: [rainbowWallet, metaMaskWallet, coinbaseWallet],
-        },
-    ],
+    walletGroups,
     {
         appName: 'HyperGate Demo',
         projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
