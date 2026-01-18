@@ -87,32 +87,55 @@ export function HyperGate({
     }, [setState, notifyStatusChange]);
 
     // Configuration for the LI.FI widget
+    // Configuration for the LI.FI widget
     const widgetConfig: any = {
         integrator: 'HyperGate',
         toChain: CHAINS.HYPEREVM.id,
         toToken: CONTRACTS.USDC_HYPEREVM,
         toAddress: userAddress as any,
-        hiddenUI: ['toAddress', 'toToken', 'appearance'] as any,
+        hiddenUI: ['toAddress', 'toToken', 'appearance', 'walletMenu', 'poweredBy', 'history'] as any,
         appearance: 'light',
         enableGas: true,
+        variant: 'compact', // Use compact mode if available to reduce header bulk
+        subvariant: 'default',
         theme: {
             container: {
-                borderRadius: '16px',
+                borderRadius: '0px', // Let the parent container handle radius
                 maxWidth: '100%',
                 boxShadow: 'none',
                 border: 'none',
+                padding: '0px',
             },
             palette: {
                 primary: { main: '#000000' },
                 secondary: { main: '#F4F4F5' },
+                background: { default: '#FFFFFF', paper: '#FFFFFF' },
             },
             shape: {
-                borderRadius: 12,
+                borderRadius: 16,
                 borderRadiusSecondary: 12,
             },
             typography: {
-                fontFamily: 'Inter, sans-serif',
-            }
+                fontFamily: 'Plus Jakarta Sans, sans-serif', // Match app font
+            },
+            components: {
+                MuiPaper: {
+                    styleOverrides: {
+                        root: {
+                            boxShadow: 'none',
+                            border: 'none',
+                        },
+                    },
+                },
+                MuiCard: {
+                    styleOverrides: {
+                        root: {
+                            boxShadow: 'none',
+                            border: 'none',
+                        },
+                    },
+                },
+            },
         },
     };
 
@@ -394,8 +417,8 @@ export function HyperGate({
 
     return (
         <div
-            className={`hypergate-widget-container flex flex-col items-center justify-center min-h-[500px] w-full mx-auto bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-[var(--shadow-float)] p-6 font-sans relative overflow-hidden ${className}`}
-            style={containerStyle}
+            className={`hypergate-widget-container flex flex-col items-center justify-center w-full mx-auto bg-white p-2 font-sans relative overflow-hidden ${className}`}
+            style={{ ...containerStyle, boxShadow: 'none', border: 'none' }}
         >
             {/* Progress Steps */}
             {showProgress && <ProgressSteps />}
