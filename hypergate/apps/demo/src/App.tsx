@@ -9,9 +9,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ToastContainer, useToast } from './components/Toast';
 import { Plasma } from './components/Plasma';
 import { TechnicalGrid } from './components/TechnicalGrid';
-import { FuzzyTextAlternating } from './components/FuzzyTextAlternating';
 import ScrollVelocity from './components/ScrollVelocity';
-import { ScrollHero } from './components/ScrollHero';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -46,7 +44,7 @@ function BridgePage() {
       </div>
 
       {/* Navigation */}
-      <nav className="top-navigation">
+      <nav className="top-navigation hidden">
         <div className="nav-content">
           <div className="nav-brand">
             <div className="nav-indicator"></div>
