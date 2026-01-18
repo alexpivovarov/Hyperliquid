@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { LiFiWidget, useWidgetEvents, WidgetEvent } from '@lifi/widget';
 import { useBridgeState, type BridgeState } from './stores/useBridgeState';
 import { CHAINS, CONTRACTS, LIMITS } from './config/constants';
-import { usePublicClient } from 'wagmi';
+import { usePublicClient, useAccount } from 'wagmi';
 import { parseAbi } from 'viem';
 import { useL1Deposit } from './hooks/useL1Deposit';
 import { apiClient } from './services/api';
@@ -47,8 +47,10 @@ export interface HyperGateCallbacks {
 }
 
 export interface HyperGateProps {
-    /** User's connected wallet address (required) */
-    userAddress: string;
+    /** Optional API key for LI.FI (demo purposes) */
+    apiKey?: string;
+    /** User's connected wallet address (optional - auto-detected if omitted) */
+    userAddress?: string;
     /** Optional theme customization */
     theme?: HyperGateTheme;
     /** Optional callback handlers */
@@ -64,12 +66,17 @@ export interface HyperGateProps {
 // =============================================================================
 
 export function HyperGate({
-    userAddress,
+    apiKey,
+    userAddress: propUserAddress,
     theme,
     callbacks,
     showProgress = true,
     className = '',
 }: HyperGateProps) {
+    // 1. Auto-detect address if not provided via props
+    const { address: connectedAddress } = useAccount();
+    const userAddress = propUserAddress || connectedAddress || '';
+
     const { state, setState, setError, setSafetyPayload, safetyPayload, error, reset, amountMismatchPayload, setAmountMismatchPayload } = useBridgeState();
     const widgetEvents = useWidgetEvents();
     const { depositToL1, isLoading: isDepositingL1 } = useL1Deposit();
