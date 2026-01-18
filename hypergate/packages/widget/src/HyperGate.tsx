@@ -564,15 +564,7 @@ export function HyperGate({
                     <div className="relative z-10 flex flex-col gap-4">
                         <LiFiWidget config={widgetConfig} integrator="HyperGate" />
 
-                        {isDemoMode && state === 'IDLE' && (
-                            <button
-                                onClick={() => setShowDemoModal(true)}
-                                className="w-full py-3 bg-amber-50 text-amber-700 border border-amber-100 rounded-[12px] text-sm font-semibold hover:bg-amber-100 transition-colors active:scale-[0.98] flex items-center justify-center gap-2"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                Simulate Bridge (Demo)
-                            </button>
-                        )}
+
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center space-y-8 py-12 text-center animate-in fade-in duration-500">
