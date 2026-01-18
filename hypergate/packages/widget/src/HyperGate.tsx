@@ -393,12 +393,23 @@ export function HyperGate({
         // User has already confirmed via the "Risk It" → "ARE YOU SURE?" flow if amount is unsafe
         if (isDemoMode) {
             setStateWithCallback('BRIDGING');
-            await new Promise(r => setTimeout(r, 2000));
+            // Simulate bridging time (longer duration for realism)
+            await new Promise(r => setTimeout(r, 8000));
 
-            const mockRoute = { toAmount: '5000000', toToken: { address: CONTRACTS.USDC_HYPEREVM }, toAmountUSD: '5.00' };
+            // Use actual values from the safety check or default to demo values
+            const amountStr = safetyPayload?.netAmount ? Math.floor(safetyPayload.netAmount * 1000000).toString() : '5000000';
+
+            const mockRoute = {
+                toAmount: amountStr,
+                toToken: { address: CONTRACTS.USDC_HYPEREVM },
+                toAmountUSD: safetyPayload?.netAmount?.toFixed(2) || '5.00'
+            };
+
             setStateWithCallback('DEPOSITING');
             try {
-                await depositToL1(BigInt(mockRoute.toAmount));
+                // Simulate L1 Deposit (longer duration for realism)
+                await new Promise(r => setTimeout(r, 4000));
+
                 setStateWithCallback('SUCCESS');
                 callbacks?.onSuccess?.({ txHash: 'demo-tx-hash', amount: mockRoute.toAmount });
             } catch (err) {
@@ -406,6 +417,7 @@ export function HyperGate({
                 callbacks?.onError?.({ type: 'DEPOSIT_FAILED', message: 'Demo deposit failed' });
             }
         } else {
+            // Real execution: resumes the UI state while the underlying widget continues
             setStateWithCallback('BRIDGING');
         }
     };
@@ -418,7 +430,7 @@ export function HyperGate({
 
     return (
         <div
-            className={`hypergate-widget-container flex flex-col items-center justify-center w-full mx-auto bg-white p-2 font-sans relative overflow-hidden ${className}`}
+            className={`hypergate-widget-container flex flex-col items-center justify-center w-full mx-auto bg-white p-2 font-sans relative overflow-hidden ${className} ${state === 'BRIDGING' ? 'bridging-mode' : ''}`}
             style={{ ...containerStyle, boxShadow: 'none', border: 'none' }}
         >
             {/* Progress Steps */}

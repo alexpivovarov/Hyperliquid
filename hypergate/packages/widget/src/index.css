@@ -5,3 +5,19 @@
 .hypergate-widget-container {
   /* Scope styles if needed */
 }
+
+/* Hide inputs during Bridging status */
+.hypergate-widget-container.bridging-mode form {
+  display: none !important;
+}
+
+/* Fallback: If LiFi changes structure, try to hide the card inputs generally */
+/* Note: Active Transactions are usually in a separate list above the form */
+.hypergate-widget-container.bridging-mode div[class*="MuiCard-root"]:has(input) {
+  display: none !important;
+}
+
+/* Hide the Swap/Exchange button if outside form */
+.hypergate-widget-container.bridging-mode button[type="submit"] {
+  display: none !important;
+}

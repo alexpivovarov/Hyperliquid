@@ -1,4 +1,4 @@
-import { BridgeState } from '../stores/useBridgeState';
+
 
 interface TransactionOverviewModalProps {
     safetyPayload: {
