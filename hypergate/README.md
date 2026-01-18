@@ -26,18 +26,20 @@ The standard Hyperliquid onboarding flow requires 3 separate transactions:
 - **Multi-chain support**: Bridge from Ethereum, Arbitrum, Optimism, Base, and more
 - **Any token → USDC**: LI.FI handles optimal swap + bridge routing
 - **Atomic deposits**: Bridged funds go directly to your trading account
-- **Real-time status**: Clear progress indicators at every step
+- **Real-time status**: Institutional-grade progress indicators
+- **Institutional UI**: Clean, white-label design optimized for trust
 
 ### Safety
-- **Safety Guard**: Warns users when depositing amounts below Hyperliquid's $5.10 minimum (smaller amounts are burned by the protocol)
-- **Balance verification**: Confirms funds arrived before initiating L1 deposit
-- **Error recovery**: Guided flows to retry failed deposits or get gas tokens
+- **Safety Guard 2.0**: BREAKING CHANGE protection. Blocks deposits < $5.10 (protocol minimum) with a detailed fee breakdown.
+- **Risk Confirmation**: "Risk It" flow for users who want to bypass safety checks (requires double confirmation).
+- **Balance Verification**: Confirms funds arrived on HyperEVM before initiating L1 deposit.
+- **Fail-safe Recovery**: Guided flows to retry failed deposits or handle partial fills (Amount Mismatch).
 
 ### Developer Experience
 - **Embeddable widget**: `<HyperGate userAddress={address} />`
-- **Customizable theme**: Primary color, border radius, container size
-- **Callback hooks**: `onSuccess`, `onError`, `onStatusChange`
-- **TypeScript**: Full type safety
+- **Demo Mode**: Full simulation without real funds (Trigger: `] ] ]`)
+- **Customizable theme**: Matches your dApp's branding
+- **TypeScript**: Full type safety and exhaustive types
 
 ---
 
@@ -62,7 +64,17 @@ function App() {
 
 **Live demo**: [hypergate-pi.vercel.app](https://hypergate-pi.vercel.app)
 
-Try it without a wallet using **Demo Mode**—simulates the full bridge flow.
+### Try Demo Mode
+HyperGate includes a built-in **Demo Mode** for testing the UI flow without spending real funds.
+
+1. Open the demo app.
+2. Press `] ] ]` (right bracket three times) to toggle Demo Mode.
+3. The widget will connect to a **Mock Wallet** with fake USDC.
+4. You can click "Bridge" to simulate the entire flow:
+   - **Bridging**: 8s delay
+   - **Depositing**: 4s delay
+   - **Success**: Funds "arrive" in 12s
+
 
 ---
 

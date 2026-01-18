@@ -138,15 +138,19 @@ Bridge operations follow a strict state machine:
   [IDLE] ──selection──> [QUOTING]                  │
                             │                       │
                             ↓                       │
-                        [BRIDGING] ──success──> [DEPOSITING]
-                            │                       │
-                            │ failure               │
-                            ↓                       ↓
-                        (error state)           [SUCCESS]
+  [SAFETY_GUARD] <──check── [BRIDGING] ──success──> [DEPOSITING]
+        │                       │                       │
+     confirmed                  │ failure               │
+        │                       ↓                       ↓
+     proceed              (error state)           [SUCCESS]
                             │                       │
                             └───────────────────────┘
                                  reset()
 ```
+
+**New States**:
+- **SAFETY_GUARD**: Pauses flow if `Net Amount < $5.10` to warn user.
+- **AMOUNT_MISMATCH**: Pauses flow if actual bridged amount differs from quote.
 
 **State Guarantees**:
 - Exactly one active state at any time
